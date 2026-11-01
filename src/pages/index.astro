@@ -6,8 +6,6 @@ import FolderIcon from '@/components/os/FolderIcon.astro';
 import FileIcon from '@/components/os/FileIcon.astro';
 import TerminalIcon from '@/components/os/TerminalIcon.astro';
 import Terminal from '@/components/os/Terminal.astro';
-import StickyNote from '@/components/os/StickyNote.astro';
-import ActivityWidget from '@/components/os/ActivityWidget.astro';
 import { categories, contacts, desktop, type CategoryKey } from '@/config/site';
 import { getProjects } from '@/lib/content';
 import { markup, url } from '@/lib/utils';
@@ -110,9 +108,6 @@ const lineCount = 30;
         </div>
       </div>
     </Window>
-
-    <ActivityWidget x={1} y={72} />
-    <StickyNote x={37} y={73} />
 
     <p class="hint mono">
       окна можно двигать · двойной клик по иконке — открыть · <button type="button" data-restore-windows>вернуть окна</button>
