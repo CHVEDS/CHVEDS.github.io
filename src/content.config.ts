@@ -30,6 +30,8 @@ const projects = defineCollection({
       category: z.enum(categoryKeys),
       stack: z.array(z.string()).default([]),
       status: z.enum(statusKeys).default('done'),
+      /** Стадия для проектов в разработке — коротко: 'MVP', 'прототип', 'тестирование', 'пилот' */
+      stage: z.string().max(24).optional(),
       /** Роль в проекте — обязательно для командных */
       role: z.string().optional(),
       team: z.string().optional(),

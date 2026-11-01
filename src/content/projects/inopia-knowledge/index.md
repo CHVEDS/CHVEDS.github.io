@@ -4,7 +4,8 @@ summary: 'RAG по внутренним документам на локальн
 date: 2026-10-30
 category: ai
 stack: [Ollama, bge-m3, Qwen 2.5, pgvector, Python, FastAPI, PostgreSQL, MCP]
-status: done
+status: wip
+stage: 'MVP'
 role: 'Архитектура и разработка'
 order: 11
 cover: ./cover.png

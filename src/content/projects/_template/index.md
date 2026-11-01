@@ -9,6 +9,7 @@ date: 2026-10-01            # месяц завершения или после�
 category: ai                # ai | automation | bots | web | security | other  (список — в src/config/site.ts)
 stack: [Python, FastAPI, React]
 status: done                # done | wip | archived
+# stage: 'MVP'              # для wip: MVP | прототип | тестирование | пилот
 role: Бэкенд и ИИ-агенты     # обязательно для командных проектов
 team: Tandemind · 4 человека # необязательно
 featured: false             # true — показать на главной

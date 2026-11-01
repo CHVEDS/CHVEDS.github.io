@@ -4,7 +4,8 @@ summary: 'Внутренняя ИИ‑инфраструктура компан�
 date: 2026-10-30
 category: ai
 stack: [Ollama, Qwen 2.5, bge-m3, Python, FastAPI, PostgreSQL, pgvector, MCP, n8n, Docker, GitHub Actions]
-status: done
+status: wip
+stage: 'MVP'
 role: 'Архитектура, разработка, оценка качества'
 featured: true
 order: 0

@@ -5,6 +5,7 @@ date: 2026-10-18
 category: ai
 stack: [Python, FastAPI, React, TypeScript, SQLModel, GigaChat, RAG, pytest]
 status: wip
+stage: 'прототип'
 role: 'Технический директор: архитектура, ИИ‑агенты, разработка'
 team: 'Tandemind · научное руководство — ИЭЭФ МГУ'
 featured: true

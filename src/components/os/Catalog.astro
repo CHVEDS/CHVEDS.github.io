@@ -60,6 +60,7 @@ const filters = (Object.keys(categories) as CategoryKey[]).filter((k) => counts[
           {items.map((e) => {
             const c = catOf(e);
             const status = 'status' in e.data ? e.data.status : undefined;
+            const stage = 'stage' in e.data ? e.data.stage : undefined;
             return (
               <article class="card" data-category={c} data-vt-origin>
                 <div class="card__preview">
@@ -68,12 +69,13 @@ const filters = (Object.keys(categories) as CategoryKey[]).filter((k) => counts[
                   ) : (
                     <FolderIcon color={c ? categories[c].folder : 'red'} size={72} />
                   )}
+                  {status === 'wip' && <span class="dev-badge mono">в разработке{stage && <b> · {stage}</b>}</span>}
                 </div>
                 <div class="card__body">
                   <p class="card__meta mono">
                     <span>{e.id}/</span>
                     <span>{formatYear(e.data.date)}</span>
-                    {status && status !== 'done' && <span class="warn">{statuses[status]}</span>}
+                    {status === 'archived' && <span class="warn">{statuses[status]}</span>}
                     {e.data.draft && <span class="warn">черновик</span>}
                   </p>
                   <h2 class="card__title">
@@ -251,6 +253,7 @@ const filters = (Object.keys(categories) as CategoryKey[]).filter((k) => counts[
   }
 
   .card__preview {
+    position: relative;
     aspect-ratio: 16 / 9;
     display: grid;
     place-items: center;
@@ -346,5 +349,38 @@ const filters = (Object.keys(categories) as CategoryKey[]).filter((k) => counts[
     .cat__main {
       padding: var(--space-4);
     }
+  }
+
+  /* Плашка «в разработке» в углу превью */
+  .dev-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #ffd27a;
+    background: rgb(17 18 21 / 0.82);
+    border: 1px solid rgb(254 188 46 / 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .dev-badge b {
+    font-weight: 600;
+    color: #ffe3a6;
+  }
+
+  .dev-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-yellow);
+    box-shadow: 0 0 0 3px rgb(254 188 46 / 0.18);
   }
 </style>

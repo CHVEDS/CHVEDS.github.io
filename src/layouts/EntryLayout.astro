@@ -29,7 +29,7 @@ const facts = [
   p?.role && { label: 'Роль', value: p.role },
   p?.team && { label: 'Команда', value: p.team },
   { label: 'Дата', value: formatMonth(data.date) },
-  p && { label: 'Статус', value: statuses[p.status] },
+  p && { label: 'Статус', value: statuses[p.status] + (p.status === 'wip' && p.stage ? ` · ${p.stage}` : '') },
 ].filter(Boolean) as { label: string; value: string }[];
 
 const linkDefs = [
@@ -55,6 +55,7 @@ const links = linkDefs.filter((l) => data.links[l.key]);
         <p class="entry__path mono">
           {folder}/<b>{entry.id}</b>
           {data.draft && <span class="warn"> · черновик</span>}
+          {p?.status === 'wip' && <span class="dev-badge">в разработке{p.stage && <b> · {p.stage}</b>}</span>}
         </p>
         <h1 class="entry__title">{data.title}</h1>
         <p class="entry__summary">{data.summary}</p>
@@ -164,6 +165,32 @@ const links = linkDefs.filter((l) => data.links[l.key]);
   .entry__main {
     padding: var(--space-6) var(--space-7) var(--space-7);
     min-width: 0;
+  }
+
+  .dev-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 12px;
+    padding: 2px 9px 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #ffd27a;
+    border: 1px solid rgb(254 188 46 / 0.45);
+    vertical-align: 1px;
+  }
+
+  .dev-badge b {
+    font-weight: 600;
+    color: #ffe3a6;
+  }
+
+  .dev-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-yellow);
   }
 
   .entry__path {

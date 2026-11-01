@@ -4,7 +4,8 @@ summary: 'Единая точка доступа к моделям: по умо�
 date: 2026-10-30
 category: ai
 stack: [Ollama, Python, FastAPI, Redis, PostgreSQL, GigaChat, YandexGPT]
-status: done
+status: wip
+stage: 'MVP'
 role: 'Архитектура и разработка'
 order: 10
 cover: ./cover.png

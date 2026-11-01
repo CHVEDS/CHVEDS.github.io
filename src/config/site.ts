@@ -14,7 +14,7 @@ export const site = {
   /** Описание для поисковиков и превью ссылок (до ~160 символов) */
   description:
     'Вадим Чураев — Python‑разработчик: ИИ‑системы на локальных моделях (LLM‑шлюз, RAG, агенты), сервисы, боты и автоматизация. Довожу идеи до работающего продукта.',
-  location: 'Москва', // TODO: + формат работы, например «Москва · удалённо или гибрид»
+  location: 'Москва',
   /** Плашка «открыт к работе» в верхнем меню */
   openToWork: true,
   locale: 'ru-RU',
@@ -23,8 +23,8 @@ export const site = {
 
 /** Контакты. Пустые строки не отображаются. */
 export const contacts = {
-  email: '', // TODO: публичная почта
-  telegram: '', // TODO: ник без @
+  email: 'churaev.vadim@gmail.com',
+  telegram: 'her3s',
   github: 'CHVEDS',
   hh: '', // ссылка на резюме hh.ru
   habr: '', // ник на Хабр Карьере
@@ -58,7 +58,7 @@ export const desktop = {
       { type: 'out', text: 'Inopia: ИИ‑платформа на локальных моделях — шлюз, RAG, агент' },
       { type: 'out', text: 'Qwen 2.5 7B + bge‑m3 на RTX 3060: 0 утечек, 25/25 порогов в CI' },
       { type: 'out', text: 'технический директор Tandemind — мультиагентная платформа обучения' },
-      { type: 'out', text: 'хакатон Интер РАО: ИБ‑ассистент, 84 источника, 111 тестов' },
+      { type: 'out', text: 'хакатон Интер РАО: полуфинал в одиночку, ИБ‑ассистент, 111 тестов' },
       { type: 'out', text: 'студент РЭУ им. Плеханова, информационная безопасность' },
     ],
   },
@@ -100,7 +100,7 @@ export const categoryKeys = Object.keys(categories) as [CategoryKey, ...Category
 
 export const statuses = {
   done: 'Готов',
-  wip: 'В работе',
+  wip: 'В разработке',
   archived: 'Архив',
 } as const;
 
@@ -109,7 +109,7 @@ export const statusKeys = Object.keys(statuses) as [StatusKey, ...StatusKey[]];
 
 /** Навыки — страница «Обо мне» */
 export const skills = [
-  { title: 'Локальные LLM', items: ['Ollama', 'Qwen 2.5', 'bge‑m3', '4‑битная квантизация'] },
+  { title: 'Локальные LLM', items: ['Ollama', 'vLLM', 'llama.cpp', 'Hugging Face', 'Qwen', 'bge‑m3'] },
   { title: 'ИИ‑системы', items: ['RAG', 'гибридный поиск', 'Агенты', 'MCP', 'Evals', 'LLM‑шлюз'] },
   { title: 'Бэкенд', items: ['Python', 'FastAPI', 'PostgreSQL + pgvector', 'Redis', 'Docker Compose', 'GitHub Actions'] },
   { title: 'Автоматизация и боты', items: ['n8n', 'aiogram', 'Telegram / MAX API', 'GigaChat', 'YandexGPT'] },

@@ -4,7 +4,8 @@ summary: 'Разбирает входящие обращения клиенто�
 date: 2026-10-30
 category: ai
 stack: [Ollama, Qwen 2.5, MCP, n8n, Python, FastAPI, PostgreSQL, Telegram]
-status: done
+status: wip
+stage: 'MVP'
 role: 'Архитектура и разработка'
 order: 12
 cover: ./cover.png

@@ -4,7 +4,8 @@ summary: 'Цифровая инфраструктура студенческог
 date: 2026-09-13
 category: bots
 stack: [Python, aiogram, aiohttp, Flask, SQLite]
-status: done
+status: wip
+stage: 'MVP'
 role: 'Разработка под ключ: архитектура, боты, веб‑кабинет'
 featured: true
 order: 3

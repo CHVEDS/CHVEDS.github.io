@@ -4,7 +4,8 @@ summary: 'Референсное мультиагентное ядро: орке
 date: 2026-07-28
 category: ai
 stack: [Python, LangGraph, ReAct, RAG, NetworkX, Langfuse]
-status: done
+status: wip
+stage: 'прототип'
 role: 'Архитектура и реализация'
 order: 5
 cover: ./cover.png
