@@ -1,0 +1,195 @@
+---
+/**
+ * Каркас всех страниц: обои, верхнее меню, док и «оконный менеджер».
+ * desktop=true — режим рабочего стола (главная): окна можно таскать.
+ */
+import BaseHead, { type SeoProps } from '@/components/BaseHead.astro';
+import MenuBar from '@/components/os/MenuBar.astro';
+import Dock from '@/components/os/Dock.astro';
+import { site } from '@/config/site';
+import Wallpaper from '@/components/os/Wallpaper.astro';
+import '@/styles/global.css';
+
+interface Props extends SeoProps {
+  desktop?: boolean;
+}
+
+const { desktop = false, ...seo } = Astro.props;
+---
+
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <BaseHead {...seo} />
+  </head>
+  <body class:list={{ 'is-desktop': desktop }}>
+    <Wallpaper />
+    <a href="#main" class="skip-link">К содержимому</a>
+    <MenuBar />
+    <main id="main" class:list={['screen', desktop ? 'screen--desktop' : 'screen--page']}>
+      <slot />
+    </main>
+    <Dock />
+  </body>
+</html>
+
+<script>
+  /* Плавный переход: окно новой страницы «вырастает» из того, на что нажали
+     (иконка, папка, карточка). Если нажали меню или док — перетекает текущее окно. */
+  function markOrigin(link: HTMLAnchorElement) {
+    if (link.target === '_blank' || link.origin !== location.origin) return;
+    const origin =
+      link.closest<HTMLElement>('[data-vt-origin]') ??
+      document.querySelector<HTMLElement>('.win--page, .screen--desktop #about:not([hidden])');
+    document.querySelectorAll<HTMLElement>('[data-vt-named]').forEach((el) => {
+      el.style.viewTransitionName = '';
+      delete el.dataset.vtNamed;
+    });
+    document.querySelectorAll<HTMLElement>('.win--page, .screen--desktop #about').forEach((w) => {
+      if (w !== origin) {
+        w.style.viewTransitionName = 'none';
+        w.dataset.vtNamed = '';
+      }
+    });
+    if (origin) {
+      origin.style.viewTransitionName = 'page-win';
+      origin.dataset.vtNamed = '';
+    }
+  }
+  (window as any).__markOrigin = markOrigin;
+
+  document.addEventListener('click', (e) => {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href]');
+    if (link && !e.defaultPrevented && !e.metaKey && !e.ctrlKey && !e.shiftKey) markOrigin(link);
+  });
+
+  // При возврате кнопкой «назад» страница может восстановиться из кеша — сбрасываем пометки
+  addEventListener('pageshow', () => {
+    document.querySelectorAll<HTMLElement>('[data-vt-named]').forEach((el) => {
+      el.style.viewTransitionName = '';
+      delete el.dataset.vtNamed;
+    });
+  });
+
+  /* Простой оконный менеджер: перетаскивание за заголовок, фокус по клику, закрытие. */
+  const desktopMode = () => matchMedia('(min-width: 1101px)').matches;
+  let topZ = 20;
+
+  function focus(win: HTMLElement) {
+    document.querySelectorAll('[data-window].is-focused').forEach((w) => w.classList.remove('is-focused'));
+    win.classList.add('is-focused');
+    if (document.body.classList.contains('is-desktop')) win.style.zIndex = String(++topZ);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-window]').forEach((win) => {
+    win.addEventListener('pointerdown', () => focus(win));
+
+    win.querySelectorAll<HTMLButtonElement>('[data-win-close]').forEach((b) =>
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!document.body.classList.contains('is-desktop') || !desktopMode()) return;
+        win.classList.add('is-closing');
+        win.addEventListener(
+          'animationend',
+          () => {
+            win.hidden = true;
+            win.classList.remove('is-closing');
+          },
+          { once: true },
+        );
+      }),
+    );
+
+    if (!document.body.classList.contains('is-desktop')) return;
+    const handle = win.querySelector<HTMLElement>('[data-drag-handle]') ?? win;
+
+    handle.addEventListener('pointerdown', (e) => {
+      if (!desktopMode() || (e.target as HTMLElement).closest('button, a')) return;
+      if (handle === win && (e.target as HTMLElement).closest('a')) return;
+      e.preventDefault();
+      const area = win.offsetParent as HTMLElement;
+      const start = { x: e.clientX, y: e.clientY, left: win.offsetLeft, top: win.offsetTop };
+      document.body.classList.add('is-dragging');
+      handle.setPointerCapture(e.pointerId);
+      let moved = false;
+
+      const move = (ev: PointerEvent) => {
+        const dx = ev.clientX - start.x;
+        const dy = ev.clientY - start.y;
+        if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+        const maxL = area.clientWidth - 80;
+        const maxT = area.clientHeight - 40;
+        win.style.left = `${Math.min(Math.max(start.left + dx, -win.offsetWidth + 120), maxL)}px`;
+        win.style.top = `${Math.min(Math.max(start.top + dy, 0), maxT)}px`;
+      };
+      const up = () => {
+        document.body.classList.remove('is-dragging');
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', up);
+        // Если окно-ссылку (виджет) потащили — не переходим по ссылке
+        if (moved && win.tagName === 'A') win.addEventListener('click', (c) => c.preventDefault(), { once: true });
+      };
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', up);
+    });
+  });
+
+  /* Иконки рабочего стола: клик — выделить, двойной клик или Enter — открыть */
+  document.querySelectorAll<HTMLAnchorElement>('[data-desktop-icon]').forEach((icon) => {
+    icon.addEventListener('click', (e) => {
+      if (!desktopMode() || e.detail === 0) return; // клавиатура и телефон — обычная ссылка
+      e.preventDefault();
+      document.querySelectorAll('[data-desktop-icon].is-selected').forEach((i) => i.classList.remove('is-selected'));
+      icon.classList.add('is-selected');
+      if (e.detail >= 2) {
+        if (icon.target === '_blank') window.open(icon.href, '_blank', 'noopener');
+        else {
+          markOrigin(icon);
+          location.href = icon.href;
+        }
+      }
+    });
+  });
+
+  document.addEventListener('pointerdown', (e) => {
+    if (!(e.target as HTMLElement).closest('[data-desktop-icon]'))
+      document.querySelectorAll('[data-desktop-icon].is-selected').forEach((i) => i.classList.remove('is-selected'));
+  });
+
+  /* Кнопка «вернуть закрытые окна» */
+  document.querySelectorAll('[data-restore-windows]').forEach((b) =>
+    b.addEventListener('click', () =>
+      document.querySelectorAll<HTMLElement>('[data-window][hidden]').forEach((w) => {
+        w.hidden = false;
+        w.classList.add('is-opening');
+        w.addEventListener('animationend', () => w.classList.remove('is-opening'), { once: true });
+      }),
+    ),
+  );
+</script>
+
+<style>
+  .screen--page {
+    padding: var(--space-6) var(--gutter) calc(var(--dock-space) + var(--space-4));
+  }
+
+  .screen--desktop {
+    position: relative;
+    height: calc(100dvh - var(--menubar-h));
+    min-height: 860px;
+  }
+
+  @media (max-width: 1100px) {
+    .screen--desktop {
+      height: auto;
+      min-height: 0;
+      padding: var(--space-5) var(--gutter) calc(var(--dock-space) + var(--space-4));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .screen--page {
+      padding-top: var(--space-4);
+    }
+  }
+</style>

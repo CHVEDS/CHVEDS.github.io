@@ -1,0 +1,49 @@
+---
+import type { FolderColor } from '@/config/site';
+
+interface Props {
+  color?: FolderColor;
+  size?: number;
+}
+const { color = 'light', size = 58 } = Astro.props;
+const fill = `var(--folder-${color})`;
+---
+
+<svg class="folder" viewBox="0 0 64 52" width={size} height={size * 0.81} aria-hidden="true">
+  <path d="M2 8a5 5 0 0 1 5-5h16l6 6h28a5 5 0 0 1 5 5v31a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5z" fill={fill} opacity=".55"></path>
+  <rect class="folder__paper" x="10" y="6" width="44" height="30" rx="2" fill="#d6d8de" opacity="0"></rect>
+  <g class="folder__front">
+    <path d="M2 16a5 5 0 0 1 5-5h50a5 5 0 0 1 5 5v29a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5z" fill={fill}></path>
+    <path d="M2 16a5 5 0 0 1 5-5h50a5 5 0 0 1 5 5v3H2z" fill="#fff" opacity=".18"></path>
+  </g>
+</svg>
+
+<style>
+  .folder {
+    overflow: visible;
+  }
+
+  .folder__front {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .folder__paper {
+    transition:
+      opacity 0.25s,
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* При наведении папка приоткрывается, из неё выглядывает лист */
+  :global(:is(a, .card):hover) .folder__front,
+  :global(:is(a, .card):focus-visible) .folder__front {
+    transform: perspective(200px) rotateX(-28deg) skewX(-4deg);
+  }
+
+  :global(:is(a, .card):hover) .folder__paper,
+  :global(:is(a, .card):focus-visible) .folder__paper {
+    opacity: 0.9;
+    transform: translateY(-5px);
+  }
+</style>

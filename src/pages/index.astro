@@ -1,0 +1,442 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Window from '@/components/os/Window.astro';
+import DesktopIcon from '@/components/os/DesktopIcon.astro';
+import FolderIcon from '@/components/os/FolderIcon.astro';
+import FileIcon from '@/components/os/FileIcon.astro';
+import TerminalIcon from '@/components/os/TerminalIcon.astro';
+import Terminal from '@/components/os/Terminal.astro';
+import StickyNote from '@/components/os/StickyNote.astro';
+import ActivityWidget from '@/components/os/ActivityWidget.astro';
+import { categories, contacts, desktop, type CategoryKey } from '@/config/site';
+import { getProjects } from '@/lib/content';
+import { markup, url } from '@/lib/utils';
+
+const projects = await getProjects();
+const featured = [...projects].sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order).slice(0, 6);
+const usedCats = [...new Set(projects.map((p) => p.data.category))] as CategoryKey[];
+const lineCount = 30;
+---
+
+<BaseLayout desktop>
+  <!-- Иконки рабочего стола -->
+  <nav class="icons" aria-label="Рабочий стол">
+    <DesktopIcon href={url('/projects')} label="projects"><FolderIcon color="light" /></DesktopIcon>
+    <DesktopIcon href={url('/lab')} label="lab"><FolderIcon color="red" /></DesktopIcon>
+    <DesktopIcon href={url('/about')} label="about.md"><FileIcon label="MD" color="#5c5f68" /></DesktopIcon>
+    {contacts.resume && <DesktopIcon href={url(contacts.resume)} label="resume.pdf" external><FileIcon label="PDF" /></DesktopIcon>}
+    {
+      contacts.github && (
+        <DesktopIcon href={`https://github.com/${contacts.github}`} label="github" external>
+          <TerminalIcon />
+        </DesktopIcon>
+      )
+    }
+  </nav>
+
+  <div class="area">
+    <!-- Главное окно: редактор с приветствием -->
+    <Window
+      id="about"
+      title="about.md — heres"
+      x={1}
+      y={4}
+      width={720}
+      z={4}
+      focus
+      href={url('/about')}
+      tabs={[
+        { label: 'about.md', active: true },
+        { label: 'projects/', href: url('/projects') },
+        { label: 'lab/', href: url('/lab') },
+      ]}
+    >
+      <div class="editor">
+        <div class="editor__gutter mono" aria-hidden="true">
+          {Array.from({ length: lineCount }, (_, i) => <span>{i + 1}</span>)}
+        </div>
+        <div class="editor__code">
+          <p class="editor__comment mono">&lt;!-- {desktop.tagline} --&gt;</p>
+          <p class="editor__greeting">{desktop.greeting}</p>
+          <h1 class="editor__title"><span class="editor__hash mono" aria-hidden="true">#</span><Fragment set:html={markup(desktop.headline)} /></h1>
+          <p class="editor__lead">{desktop.lead}</p>
+          <div class="editor__actions mono">
+            <a href={url('/projects')} class="btn btn--primary">Смотреть проекты <span class="kbd">↵</span></a>
+            <a href={url('/about')} class="btn">Обо мне</a>
+            <a href={url('/about#contacts')} class="btn btn--ghost">Связаться →</a>
+          </div>
+        </div>
+      </div>
+    </Window>
+
+    <!-- Терминал -->
+    <Window id="terminal" title={desktop.terminal.title} x={57} y={6} width={470} z={5}>
+      <Terminal />
+    </Window>
+
+    <!-- Проводник с проектами -->
+    <Window id="finder" title="projects" x={59} y={44} width={440} z={6} href={url('/projects')} meta={`${projects.length} эл.`}>
+      <div class="finder">
+        <div class="finder__side">
+          <p class="finder__group">Избранное</p>
+          <a href={url('/projects')} class="is-active">projects</a>
+          <a href={url('/lab')}>lab</a>
+          {
+            usedCats.length > 0 && (
+              <>
+                <p class="finder__group">Теги</p>
+                {usedCats.map((c) => (
+                  <a href={url(`/projects?cat=${c}`)}>
+                    <i class:list={['dot', `dot--${categories[c].folder}`]} /> {categories[c].label}
+                  </a>
+                ))}
+              </>
+            )
+          }
+        </div>
+        <div class="finder__grid">
+          {
+            featured.length > 0 ? (
+              featured.map((p) => (
+                <a href={url(`/projects/${p.id}`)} class="finder__item mono" title={p.data.title} data-vt-origin>
+                  <FolderIcon color={categories[p.data.category].folder} size={54} />
+                  <span>{p.id}</span>
+                </a>
+              ))
+            ) : (
+              <p class="finder__empty mono">папка пока пуста</p>
+            )
+          }
+        </div>
+      </div>
+    </Window>
+
+    <ActivityWidget x={1} y={72} />
+    <StickyNote x={37} y={73} />
+
+    <p class="hint mono">
+      окна можно двигать · двойной клик по иконке — открыть · <button type="button" data-restore-windows>вернуть окна</button>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .icons {
+    position: absolute;
+    left: 20px;
+    top: 24px;
+    display: grid;
+    gap: 14px;
+    z-index: 1;
+  }
+
+  /* Окна: отступ от иконок слева, на широких экранах композиция по центру */
+  .area {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    --area-w: min(1320px, calc(100vw - 200px));
+    width: var(--area-w);
+    left: max(176px, calc((100vw - var(--area-w)) / 2));
+  }
+
+  /* Редактор */
+  .editor {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+  }
+
+  .editor__gutter {
+    display: grid;
+    align-content: start;
+    padding: 20px 12px 0 0;
+    border-right: 1px solid var(--color-line);
+    font-size: 12px;
+    line-height: 2.2;
+    color: #4a4d55;
+    text-align: right;
+    overflow: hidden;
+    height: 0;
+    min-height: 100%;
+  }
+
+  .editor__code {
+    padding: 24px 32px 30px;
+  }
+
+  .editor__comment {
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+
+  .editor__greeting {
+    margin-top: 14px;
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .editor__title {
+    margin: 8px 0 16px;
+    font-size: clamp(2.4rem, 1.6rem + 1.4vw, 3.2rem);
+    line-height: 1.03;
+    letter-spacing: -0.04em;
+  }
+
+  @media (min-width: 721px) {
+    .editor__title :global(.mark) {
+      white-space: nowrap;
+    }
+  }
+
+  .editor__hash {
+    font-weight: 400;
+    color: #4a4d55;
+    font-size: 0.64em;
+    letter-spacing: 0;
+    margin-right: 0.3em;
+  }
+
+  .editor__lead {
+    max-width: 540px;
+    font-size: 16.5px;
+    color: var(--color-text-muted);
+  }
+
+  .editor__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 17px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-line-2);
+    font-size: 13px;
+    transition: background var(--duration-fast);
+  }
+
+  .btn:hover {
+    background: var(--color-hover);
+  }
+
+  .btn--primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    border-color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .btn--primary:hover {
+    background: #fff;
+  }
+
+  .btn--ghost {
+    border-color: transparent;
+    color: var(--color-text-muted);
+  }
+
+  .btn--ghost:hover {
+    color: var(--color-text);
+  }
+
+  .kbd {
+    opacity: 0.55;
+    font-size: 11.5px;
+  }
+
+  /* Проводник */
+  .finder {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    min-height: 270px;
+  }
+
+  .finder__side {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    padding: 10px 8px;
+    border-right: 1px solid var(--color-line);
+    background: var(--color-inset);
+    font-size: 12.5px;
+  }
+
+  .finder__group {
+    padding: 8px 8px 2px;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .finder__side a {
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    color: #c6c8ce;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .finder__side a:hover,
+  .finder__side a.is-active {
+    background: var(--color-hover);
+    color: var(--color-text);
+  }
+
+  .dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+
+  .dot--light {
+    background: var(--folder-light);
+  }
+
+  .dot--red {
+    background: var(--folder-red);
+  }
+
+  .dot--gray {
+    background: var(--folder-gray);
+  }
+
+  .finder__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-content: start;
+    gap: 14px 6px;
+    padding: 16px 10px;
+  }
+
+  .finder__item {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 6px 2px;
+    border-radius: var(--radius-md);
+    font-size: 11.5px;
+    color: #c6c8ce;
+    text-align: center;
+  }
+
+  .finder__item span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+    border-radius: 4px;
+  }
+
+  .finder__item:hover span,
+  .finder__item:focus-visible span {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  .finder__empty {
+    grid-column: 1 / -1;
+    padding: 40px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--color-text-subtle);
+  }
+
+  .hint {
+    position: fixed;
+    right: 16px;
+    bottom: 14px;
+    z-index: 90;
+    font-size: 11px;
+    color: var(--color-text-subtle);
+  }
+
+  .hint button {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  @media (max-width: 1400px) {
+    .hint {
+      display: none;
+    }
+  }
+
+  /* Ноутбуки: главное окно чуть компактнее */
+  @media (max-width: 1360px) and (min-width: 1101px) {
+    .area :global(#about) {
+      width: min(640px, 56%);
+    }
+
+    .editor__title {
+      font-size: 2.9rem;
+    }
+  }
+
+  /* Невысокие экраны: стикер «приклеен» к углу главного окна, чтобы не уходить под док */
+  @media (max-height: 880px) and (min-width: 1101px) {
+    .area :global(.note) {
+      top: 58% !important;
+      left: 47% !important;
+      z-index: 7;
+    }
+  }
+
+  /* Узкие экраны: лента окон */
+  @media (max-width: 1100px) {
+    .icons {
+      display: none;
+    }
+
+    .area {
+      position: static;
+      width: auto;
+      left: auto;
+      display: grid;
+      gap: var(--space-4);
+      max-width: 760px;
+      margin-inline: auto;
+    }
+
+    .hint {
+      display: none;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .editor {
+      grid-template-columns: 1fr;
+    }
+
+    .editor__gutter {
+      display: none;
+    }
+
+    .editor__code {
+      padding: 20px 18px 24px;
+    }
+
+    .editor__greeting {
+      font-size: 18px;
+    }
+
+    .finder {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .finder__side {
+      display: none;
+    }
+  }
+</style>

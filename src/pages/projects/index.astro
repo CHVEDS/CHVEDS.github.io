@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Window from '@/components/os/Window.astro';
+import Catalog from '@/components/os/Catalog.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects();
+---
+
+<BaseLayout title="Проекты" description="Каталог проектов: ИИ-агенты, автоматизация, боты, веб и кибербезопасность.">
+  <Window variant="page" title="~/projects" meta={`${projects.length} эл.`}>
+    <h1 class="sr-only">Проекты</h1>
+    <Catalog
+      items={projects}
+      basePath="/projects"
+      intro="Работы, доведённые до рабочего состояния: от хакатонов до систем, которыми пользуются люди."
+      emptyText="Проекты появятся здесь совсем скоро."
+    />
+  </Window>
+</BaseLayout>

@@ -1,0 +1,16 @@
+---
+import EntryLayout from '@/layouts/EntryLayout.astro';
+import { getLabItems } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const items = await getLabItems();
+  return items.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, prev: items[i - 1], next: items[i + 1] },
+  }));
+}
+
+const { entry, prev, next } = Astro.props;
+---
+
+<EntryLayout entry={entry} basePath="/lab" prev={prev} next={next} />

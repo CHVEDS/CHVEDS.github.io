@@ -1,0 +1,64 @@
+---
+/** Иконка на рабочем столе: одиночный клик выделяет, двойной — открывает (как в ОС). */
+interface Props {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+const { href, label, external = false } = Astro.props;
+---
+
+<a
+  class="dicon"
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener' : undefined}
+  data-desktop-icon
+  data-vt-origin
+>
+  <span class="dicon__img"><slot /></span>
+  <span class="dicon__label mono">{label}</span>
+</a>
+
+<style>
+  .dicon {
+    width: 96px;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 6px 4px;
+    border-radius: var(--radius-md);
+    font-size: var(--text-xs);
+    color: #d8d9dd;
+    text-shadow: 0 1px 3px #000;
+    text-align: center;
+  }
+
+  .dicon__img {
+    height: 50px;
+    display: grid;
+    place-items: center;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .dicon:hover .dicon__img {
+    transform: translateY(-2px);
+  }
+
+  .dicon__label {
+    padding: 1px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+  }
+
+  .dicon.is-selected .dicon__label,
+  .dicon:focus-visible .dicon__label {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    text-shadow: none;
+  }
+
+  .dicon:focus-visible {
+    outline: none;
+  }
+</style>

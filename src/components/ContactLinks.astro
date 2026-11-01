@@ -1,0 +1,89 @@
+---
+import { contacts } from '@/config/site';
+import Icon from './Icon.astro';
+
+interface Props {
+  variant?: 'icons' | 'list';
+}
+const { variant = 'icons' } = Astro.props;
+
+const items = [
+  contacts.email && { href: `mailto:${contacts.email}`, label: contacts.email, title: 'Почта', icon: 'mail' as const },
+  contacts.telegram && {
+    href: `https://t.me/${contacts.telegram}`,
+    label: `@${contacts.telegram}`,
+    title: 'Telegram',
+    icon: 'telegram' as const,
+  },
+  contacts.github && {
+    href: `https://github.com/${contacts.github}`,
+    label: `github.com/${contacts.github}`,
+    title: 'GitHub',
+    icon: 'github' as const,
+  },
+  contacts.hh && { href: contacts.hh, label: 'Резюме на hh.ru', title: 'hh.ru', icon: 'briefcase' as const },
+  contacts.habr && {
+    href: `https://career.habr.com/${contacts.habr}`,
+    label: 'Хабр Карьера',
+    title: 'Хабр Карьера',
+    icon: 'briefcase' as const,
+  },
+].filter(Boolean) as { href: string; label: string; title: string; icon: 'mail' | 'telegram' | 'github' | 'briefcase' }[];
+---
+
+<ul class:list={['contacts', `contacts--${variant}`]}>
+  {
+    items.map((c) => (
+      <li>
+        <a href={c.href} target={c.href.startsWith('http') ? '_blank' : undefined} rel="noopener" title={c.title}>
+          <Icon name={c.icon} size={variant === 'icons' ? 18 : 20} />
+          <span class={variant === 'icons' ? 'sr-only' : undefined}>{c.label}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .contacts {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .contacts a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text-muted);
+    transition: color var(--duration-fast);
+  }
+
+  .contacts a:hover {
+    color: var(--color-accent);
+  }
+
+  .contacts--icons a {
+    width: 2.25rem;
+    height: 2.25rem;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border);
+  }
+
+  .contacts--icons a:hover {
+    border-color: var(--color-accent);
+  }
+
+  .contacts--list {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .contacts--list a {
+    font-size: var(--text-lg);
+    color: var(--color-text);
+  }
+</style>

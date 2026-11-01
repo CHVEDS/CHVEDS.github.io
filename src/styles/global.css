@@ -1,0 +1,690 @@
+@import '@fontsource-variable/onest';
+@import '@fontsource-variable/jetbrains-mono';
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--color-bg);
+}
+
+body {
+  min-height: 100dvh;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img,
+picture,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--color-red);
+  color: #fff;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 1000;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: calc(var(--menubar-h) + var(--space-2));
+}
+
+/* Красное подчёркивание акцентных слов */
+.mark {
+  font-style: normal;
+  box-shadow: inset 0 -0.13em 0 rgb(255 95 87 / 0.8);
+}
+
+/* ── Текст из Markdown ─────────────────────────────────────────── */
+.prose {
+  font-size: var(--text-lg);
+  line-height: 1.7;
+  color: #d4d6db;
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+.prose h2 {
+  font-size: var(--text-2xl);
+  color: var(--color-text);
+  margin-top: 2em;
+}
+
+.prose h2::before {
+  content: '## ';
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--color-text-subtle);
+  font-size: 0.75em;
+}
+
+.prose h3 {
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  margin-top: 1.6em;
+}
+
+.prose a {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-decoration-color: var(--color-red);
+  text-underline-offset: 3px;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.3em;
+}
+
+.prose li + li {
+  margin-top: 0.35em;
+}
+
+.prose li::marker {
+  color: var(--color-red);
+}
+
+.prose strong {
+  color: var(--color-text);
+}
+
+.prose blockquote {
+  border-left: 2px solid var(--color-red);
+  padding-left: var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 0.12em 0.4em;
+  border-radius: 5px;
+  background: var(--color-hover);
+  border: 1px solid var(--color-line);
+}
+
+.prose pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+  background: rgb(0 0 0 / 0.3) !important;
+  overflow-x: auto;
+}
+
+.prose img,
+.prose video {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-base);
+}
+
+.prose th,
+.prose td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+}
+
+.prose th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-line);
+  margin-block: 2.5em;
+}
+
+[data-window][hidden] {
+  display: none !important;
+}
+
+/* ═════════════════════════ Анимации и переходы ═════════════════════════ */
+
+/* Переходы между страницами (View Transitions API: Chrome, Edge, Safari 18.2+).
+   Меню, док и обои стоят на месте, окно «разворачивается» из того, на что нажали. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::view-transition-old(root) {
+  animation: 0.2s ease-out both vt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 0.32s 0.06s ease-out both vt-fade-in;
+}
+
+::view-transition-group(menubar),
+::view-transition-group(dock),
+::view-transition-group(wallpaper),
+::view-transition-new(menubar),
+::view-transition-new(dock),
+::view-transition-new(wallpaper) {
+  animation: none;
+}
+
+/* Старые снимки меню, дока и обоев сразу скрываем — новые идентичны, поэтому ничего не мигает */
+::view-transition-old(menubar),
+::view-transition-old(dock),
+::view-transition-old(wallpaper) {
+  display: none;
+}
+
+/* Окно: старый снимок быстро растворяется, новый проявляется, пока рамка летит и растёт */
+::view-transition-old(page-win) {
+  animation: 0.22s ease-out both vt-fade-out;
+}
+
+::view-transition-new(page-win) {
+  animation: 0.34s 0.05s ease-out both vt-fade-in;
+}
+
+::view-transition-old(page-win),
+::view-transition-new(page-win) {
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.win--page,
+.screen--desktop #about {
+  view-transition-name: page-win;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Запасной вариант для браузеров без переходов между страницами (Firefox):
+   окно мягко появляется само. Класс .vt ставится, если переход уже идёт. */
+@keyframes win-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+
+html:not(.vt) .win--page {
+  animation: win-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Содержимое окна проявляется по очереди */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.reveal > * {
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 0.42s;
+}
+
+.reveal > :nth-child(1) { animation-delay: 0.16s; }
+.reveal > :nth-child(2) { animation-delay: 0.2s; }
+.reveal > :nth-child(3) { animation-delay: 0.24s; }
+.reveal > :nth-child(4) { animation-delay: 0.28s; }
+.reveal > :nth-child(5) { animation-delay: 0.32s; }
+.reveal > :nth-child(6) { animation-delay: 0.36s; }
+.reveal > :nth-child(7) { animation-delay: 0.4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Рабочий стол: окна появляются по очереди, закрываются и открываются плавно */
+@keyframes win-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+@keyframes win-out {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.92);
+  }
+}
+
+@media (min-width: 1101px) {
+  html:not(.vt) .screen--desktop [data-window],
+  html.vt .screen--desktop [data-window]:not(#about) {
+    animation: win-pop 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .screen--desktop .area > :nth-child(1) { animation-delay: 0.05s; }
+  .screen--desktop .area > :nth-child(2) { animation-delay: 0.14s; }
+  .screen--desktop .area > :nth-child(3) { animation-delay: 0.22s; }
+  .screen--desktop .area > :nth-child(4) { animation-delay: 0.3s; }
+  .screen--desktop .area > :nth-child(5) { animation-delay: 0.38s; }
+}
+
+.screen--desktop [data-window].is-closing {
+  animation: win-out 0.22s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+  pointer-events: none;
+}
+
+.screen--desktop [data-window].is-opening {
+  animation: win-pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both !important;
+  animation-delay: 0s !important;
+}
+
+/* Иконки рабочего стола появляются вместе с окнами */
+@media (min-width: 1101px) {
+  html:not(.vt) .screen--desktop [data-desktop-icon] {
+    animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .screen--desktop [data-desktop-icon]:nth-child(2) { animation-delay: 0.05s; }
+  .screen--desktop [data-desktop-icon]:nth-child(3) { animation-delay: 0.1s; }
+  .screen--desktop [data-desktop-icon]:nth-child(4) { animation-delay: 0.15s; }
+  .screen--desktop [data-desktop-icon]:nth-child(5) { animation-delay: 0.2s; }
+}
+
+/* ═════════════════════════ Диаграммы в тексте проектов ═════════════════════════
+   Пишутся прямо в Markdown как HTML (одним блоком, без пустых строк внутри).
+   На широком экране — по горизонтали, на телефоне — сверху вниз. */
+.prose .dg {
+  margin: 1.6em 0;
+  padding: 22px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background:
+    radial-gradient(600px 300px at 0% 0%, rgb(255 255 255 / 0.025), transparent 70%),
+    rgb(0 0 0 / 0.22);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.prose .dg * + * {
+  margin-top: 0;
+}
+
+.prose .dg-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.prose .dg-caption b {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* Узел */
+.prose .dg-node {
+  position: relative;
+  padding: 11px 14px;
+  border: 1px solid var(--color-line-2);
+  border-radius: 9px;
+  background: var(--color-panel-solid);
+  min-width: 0;
+}
+
+.prose .dg-node b {
+  display: block;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.prose .dg-node span,
+.prose .dg-node small {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+.prose .dg-node .dg-num {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 0 6px;
+  border-radius: 50%;
+  border: 1px solid var(--color-line-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.prose .dg-node.is-key {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgb(242 242 240 / 0.06);
+}
+
+.prose .dg-node.is-red {
+  border-color: var(--color-red);
+  box-shadow: 0 0 0 3px rgb(255 95 87 / 0.08);
+}
+
+.prose .dg-node.is-dashed {
+  border-style: dashed;
+  background: transparent;
+}
+
+.prose .dg-node.is-good b::before,
+.prose .dg-node.is-stop b::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: 2px;
+  background: var(--color-green);
+}
+
+.prose .dg-node.is-stop b::before {
+  background: var(--color-red);
+}
+
+.prose .dg-tag {
+  font-style: normal;
+  display: inline-block;
+  margin: 6px 4px 0 0;
+  padding: 1px 7px;
+  border: 1px solid var(--color-line);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #c6c8ce;
+}
+
+.prose .dg-tag.is-red {
+  border-color: rgb(255 95 87 / 0.5);
+  color: #ff8a84;
+}
+
+/* Цепочка шагов */
+.prose .dg-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.prose .dg-flow > .dg-node,
+.prose .dg-flow > .dg-col {
+  flex: 1 1 0;
+}
+
+.prose .dg-arrow {
+  flex: 0 0 26px;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+
+.prose .dg-arrow::before {
+  content: '→';
+}
+
+.prose .dg-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prose .dg-col > .dg-node {
+  flex: 1;
+}
+
+/* Вертикальный переход между рядами */
+.prose .dg-down {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.prose .dg-down::before {
+  content: '↓';
+  font-size: 15px;
+}
+
+.prose .dg-down[data-label]::before {
+  content: '↓  ' attr(data-label);
+}
+
+/* Слои платформы */
+.prose .dg-layer {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.prose .dg-layer-name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.prose .dg-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.prose .dg-row.is-2 {
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.prose .dg-row.is-2eq {
+  grid-template-columns: 1fr 1fr;
+}
+
+.prose .dg-row.is-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.prose .dg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-line);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.prose .dg-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border-radius: 3px;
+  border: 1px solid var(--color-line-2);
+}
+
+.prose .dg-legend i.is-key {
+  border-color: var(--color-accent);
+}
+
+.prose .dg-legend i.is-red {
+  border-color: var(--color-red);
+}
+
+.prose .dg-legend i.is-dashed {
+  border-style: dashed;
+}
+
+@media (max-width: 760px) {
+  .prose .dg {
+    padding: 16px;
+  }
+
+  .prose .dg-flow {
+    flex-direction: column;
+  }
+
+  .prose .dg-arrow {
+    flex-basis: 24px;
+  }
+
+  .prose .dg-arrow::before {
+    content: '↓';
+  }
+
+  .prose .dg-layer {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .prose .dg-row.is-2,
+  .prose .dg-row.is-2eq,
+  .prose .dg-row.is-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .prose .dg-caption span {
+    display: none;
+  }
+}

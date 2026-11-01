@@ -1,0 +1,178 @@
+---
+import { contacts } from '@/config/site';
+import { isActive, url } from '@/lib/utils';
+import Icon from '../Icon.astro';
+
+const pathname = Astro.url.pathname;
+
+type Item = { href: string; label: string; icon: 'home' | 'folder' | 'flask' | 'terminal' | 'user' | 'github' | 'mail' | 'telegram'; external?: boolean };
+
+const main: Item[] = [
+  { href: '/', label: 'Рабочий стол', icon: 'home' },
+  { href: '/projects', label: 'Проекты', icon: 'folder' },
+  { href: '/lab', label: 'Лаборатория', icon: 'flask' },
+  { href: '/about', label: 'Обо мне', icon: 'user' },
+];
+
+const extra: Item[] = [
+  contacts.github && { href: `https://github.com/${contacts.github}`, label: 'GitHub', icon: 'github', external: true },
+  contacts.telegram && { href: `https://t.me/${contacts.telegram}`, label: 'Telegram', icon: 'telegram', external: true },
+  contacts.email && { href: `mailto:${contacts.email}`, label: 'Почта', icon: 'mail', external: true },
+].filter(Boolean) as Item[];
+---
+
+<nav class="dock" aria-label="Док">
+  {
+    main.map((i) => (
+      <a
+        href={url(i.href)}
+        class:list={['dock__item', { 'is-open': isActive(i.href, pathname) }]}
+        aria-current={isActive(i.href, pathname) ? 'page' : undefined}
+        data-tip={i.label}
+      >
+        <Icon name={i.icon} size={22} />
+        <span class="dock__label">{i.label}</span>
+      </a>
+    ))
+  }
+  {extra.length > 0 && <span class="dock__sep" aria-hidden="true" />}
+  {
+    extra.map((i) => (
+      <a href={i.href} class="dock__item dock__item--extra" target="_blank" rel="noopener" data-tip={i.label}>
+        <Icon name={i.icon} size={22} label={i.label} />
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .dock {
+    view-transition-name: dock;
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 20px;
+    background: rgb(30 31 36 / 0.6);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px -10px rgb(0 0 0 / 0.6);
+  }
+
+  .dock__item {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: rgb(255 255 255 / 0.06);
+    color: #d8d9dd;
+    transition:
+      transform var(--duration) var(--ease-out),
+      background var(--duration-fast);
+  }
+
+  .dock__item:hover {
+    transform: translateY(-6px) scale(1.08);
+    background: rgb(255 255 255 / 0.12);
+  }
+
+  /* Подсказка над иконкой */
+  .dock__item::before {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: var(--color-panel-solid);
+    border: 1px solid var(--color-line);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast);
+  }
+
+  .dock__item:hover::before {
+    opacity: 1;
+  }
+
+  .dock__item.is-open::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-text);
+  }
+
+  .dock__label {
+    display: none;
+  }
+
+  .dock__sep {
+    width: 1px;
+    height: 34px;
+    background: rgb(255 255 255 / 0.12);
+    margin: 0 4px;
+  }
+
+  /* Телефон: док становится нижней навигацией с подписями */
+  @media (max-width: 720px) {
+    .dock {
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      transform: none;
+      justify-content: space-around;
+      gap: 0;
+      padding: 6px;
+    }
+
+    .dock__item {
+      width: auto;
+      height: auto;
+      flex: 1;
+      padding: 6px 2px 4px;
+      gap: 2px;
+      background: none;
+    }
+
+    .dock__item:hover {
+      transform: none;
+    }
+
+    .dock__item::before {
+      display: none;
+    }
+
+    .dock__item.is-open {
+      background: rgb(255 255 255 / 0.08);
+    }
+
+    .dock__item.is-open::after {
+      display: none;
+    }
+
+    .dock__label {
+      display: block;
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .dock__sep,
+    .dock__item--extra {
+      display: none;
+    }
+  }
+</style>

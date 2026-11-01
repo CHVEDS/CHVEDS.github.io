@@ -1,0 +1,62 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Window from '@/components/os/Window.astro';
+import { url } from '@/lib/utils';
+---
+
+<BaseLayout title="Страница не найдена" noindex>
+  <div class="wrap">
+    <Window variant="page" title="zsh — 404">
+      <div class="nf mono">
+        <p><span class="p">❯</span> cd {Astro.url.pathname}</p>
+        <p class="err">zsh: no such file or directory</p>
+        <h1 class="nf__title">404 — такой страницы нет</h1>
+        <p class="muted">Возможно, проект переехал или ссылка устарела.</p>
+        <p class="nf__links">
+          <a href={url('/')}>cd ~</a>
+          <a href={url('/projects')}>ls projects/</a>
+        </p>
+      </div>
+    </Window>
+  </div>
+</BaseLayout>
+
+<style>
+  .wrap {
+    max-width: 640px;
+    margin: 8vh auto 0;
+  }
+
+  .nf {
+    padding: var(--space-5) var(--space-5) var(--space-6);
+    font-size: 13.5px;
+    line-height: 1.9;
+  }
+
+  .p,
+  .err {
+    color: var(--color-red);
+  }
+
+  .nf__title {
+    margin: var(--space-5) 0 var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--text-3xl);
+  }
+
+  .nf__links {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .nf__links a {
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-line-2);
+  }
+
+  .nf__links a:hover {
+    background: var(--color-hover);
+  }
+</style>

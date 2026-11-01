@@ -1,0 +1,47 @@
+---
+import { site } from '@/config/site';
+import { url } from '@/lib/utils';
+
+export interface SeoProps {
+  title?: string;
+  description?: string;
+  /** Путь к картинке превью ссылки (1200×630) относительно public/ или абсолютный URL */
+  image?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+}
+
+const { title, description = site.description, image = '/og-default.png', type = 'website', noindex = false } =
+  Astro.props as SeoProps;
+
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.role}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(url(image), Astro.site);
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex" />}
+
+<link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+<link rel="sitemap" href={url('/sitemap-index.xml')} />
+<meta name="theme-color" content="#111215" />
+
+<meta property="og:type" content={type} />
+<meta property="og:locale" content="ru_RU" />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta name="twitter:card" content="summary_large_image" />
+
+<!-- Если страница открылась через плавный переход — запасная анимация окна не нужна -->
+<script is:inline>
+  addEventListener('pagereveal', function (e) {
+    if (e.viewTransition) document.documentElement.classList.add('vt');
+  });
+</script>

@@ -1,0 +1,198 @@
+---
+/**
+ * Живые обои: изолинии рельефа, которые медленно «текут».
+ * Рисуются на canvas алгоритмом marching squares по плавно меняющемуся полю.
+ * Время берётся абсолютное, поэтому при переходе между страницами рисунок продолжается без скачка.
+ * Пауза, когда вкладка скрыта; при prefers-reduced-motion — статичная картинка.
+ */
+import { getImage } from 'astro:assets';
+import wallpaper from '@/assets/wallpaper.png';
+
+const still = await getImage({ src: wallpaper, format: 'webp', quality: 80 });
+---
+
+<div class="wallpaper" aria-hidden="true" style={`--still:url(${still.src})`}>
+  <canvas id="wallpaper-canvas"></canvas>
+  <div class="wallpaper__vignette"></div>
+</div>
+
+<script is:inline>
+  (function () {
+    var canvas = document.getElementById('wallpaper-canvas');
+    if (!canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Параметры рисунка
+    var SPEED = 0.08; // скорость «течения» линий (шагов уровня в секунду)
+    var DRIFT = 0.03; // скорость дрейфа холмов
+    var LEVELS = 34; // сколько линий одновременно
+    var FPS = 24;
+
+    // Холмы поля: фиксированный «случайный» набор, чтобы рисунок был одинаковым на всех страницах
+    var seed = 7;
+    function rnd() {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    }
+    var blobs = [];
+    for (var i = 0; i < 11; i++) {
+      blobs.push({
+        x: rnd(), y: rnd(), s: 0.12 + rnd() * 0.28, a: rnd() * 2 - 1,
+        ax: 0.05 + rnd() * 0.12, ay: 0.05 + rnd() * 0.12,
+        fx: 0.5 + rnd(), fy: 0.5 + rnd(), p: rnd() * 6.28,
+      });
+    }
+
+    var W, H, dpr, cell, cols, rows, vals, lo, hi;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      cell = W < 720 ? 18 : 13;
+      cols = Math.ceil(W / cell) + 1;
+      rows = Math.ceil(H / cell) + 1;
+      vals = new Float32Array(cols * rows);
+      lo = undefined;
+    }
+
+    function sample(t) {
+      var k = Math.max(W, H);
+      var bx = [], by = [], bs = [], ba = [];
+      for (var b = 0; b < blobs.length; b++) {
+        var o = blobs[b];
+        bx.push((o.x + Math.sin(t * DRIFT * o.fx + o.p) * o.ax) * W);
+        by.push((o.y + Math.cos(t * DRIFT * o.fy + o.p) * o.ay) * H);
+        var s = o.s * k;
+        bs.push(1 / (2 * s * s));
+        ba.push(o.a);
+      }
+      var mn = Infinity, mx = -Infinity;
+      for (var r = 0; r < rows; r++) {
+        var y = r * cell;
+        for (var c = 0; c < cols; c++) {
+          var x = c * cell, v = 0;
+          for (var j = 0; j < bx.length; j++) {
+            var dx = x - bx[j], dy = y - by[j];
+            v += ba[j] * Math.exp(-(dx * dx + dy * dy) * bs[j]);
+          }
+          v += 0.12 * Math.sin(x / 340 + t * 0.03) * Math.cos(y / 290 - t * 0.025);
+          vals[r * cols + c] = v;
+          if (v < mn) mn = v;
+          if (v > mx) mx = v;
+        }
+      }
+      // Диапазон уровней фиксируем по первому кадру — так линии не «дёргаются»
+      if (lo === undefined) {
+        lo = mn;
+        hi = mx;
+      }
+    }
+
+    function contour(level) {
+      for (var r = 0; r < rows - 1; r++) {
+        for (var c = 0; c < cols - 1; c++) {
+          var i = r * cols + c;
+          var a = vals[i], b = vals[i + 1], d = vals[i + cols], e = vals[i + cols + 1];
+          var idx = (a > level ? 8 : 0) | (b > level ? 4 : 0) | (e > level ? 2 : 0) | (d > level ? 1 : 0);
+          if (idx === 0 || idx === 15) continue;
+          var x = c * cell, y = r * cell;
+          var top = x + cell * ((level - a) / (b - a));
+          var bot = x + cell * ((level - d) / (e - d));
+          var lft = y + cell * ((level - a) / (d - a));
+          var rgt = y + cell * ((level - b) / (e - b));
+          switch (idx) {
+            case 1: case 14: ctx.moveTo(x, lft); ctx.lineTo(bot, y + cell); break;
+            case 2: case 13: ctx.moveTo(bot, y + cell); ctx.lineTo(x + cell, rgt); break;
+            case 3: case 12: ctx.moveTo(x, lft); ctx.lineTo(x + cell, rgt); break;
+            case 4: case 11: ctx.moveTo(top, y); ctx.lineTo(x + cell, rgt); break;
+            case 5: ctx.moveTo(x, lft); ctx.lineTo(top, y); ctx.moveTo(bot, y + cell); ctx.lineTo(x + cell, rgt); break;
+            case 6: case 9: ctx.moveTo(top, y); ctx.lineTo(bot, y + cell); break;
+            case 7: case 8: ctx.moveTo(x, lft); ctx.lineTo(top, y); break;
+            case 10: ctx.moveTo(x, lft); ctx.lineTo(bot, y + cell); ctx.moveTo(top, y); ctx.lineTo(x + cell, rgt); break;
+          }
+        }
+      }
+    }
+
+    function draw(t) {
+      sample(t);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      var step = (hi - lo) / LEVELS;
+      var phase = (t * SPEED) % 5; // период в 5 шагов — толстые линии остаются на месте
+      ctx.lineJoin = 'round';
+      // Тонкие линии
+      ctx.beginPath();
+      for (var k = -5; k < LEVELS; k++) if (((k % 5) + 5) % 5 !== 0) contour(lo + (k + phase) * step);
+      ctx.strokeStyle = 'rgba(255,255,255,0.075)';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      // Каждая пятая — заметнее
+      ctx.beginPath();
+      for (var k2 = -5; k2 < LEVELS; k2 += 5) contour(lo + (k2 + phase) * step);
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1.1;
+      ctx.stroke();
+    }
+
+    var now = function () {
+      return (performance.timeOrigin + performance.now()) / 1000;
+    };
+    resize();
+    draw(now() % 100000);
+    canvas.classList.add('is-ready');
+    if (reduce) return;
+
+    var last = 0;
+    function loop(ts) {
+      if (ts - last >= 1000 / FPS) {
+        last = ts;
+        draw(now() % 100000);
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    var rt;
+    window.addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () {
+        resize();
+        draw(now() % 100000);
+      }, 120);
+    });
+  })();
+</script>
+
+<style>
+  .wallpaper {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--still) center / cover no-repeat, var(--color-bg);
+    view-transition-name: wallpaper;
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    background: var(--color-bg);
+    opacity: 0;
+  }
+
+  canvas.is-ready {
+    opacity: 1;
+  }
+
+  .wallpaper__vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(1000px 700px at 55% 45%, transparent, rgb(0 0 0 / 0.5));
+  }
+</style>

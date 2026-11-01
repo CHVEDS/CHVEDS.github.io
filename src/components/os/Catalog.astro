@@ -1,0 +1,350 @@
+---
+/** Каталог в стиле «Проводника»: боковая панель с тегами-фильтрами и сетка карточек */
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { categories, statuses, type CategoryKey } from '@/config/site';
+import { formatYear, url } from '@/lib/utils';
+import FolderIcon from './FolderIcon.astro';
+import Tag from '../Tag.astro';
+import EmptyState from '../EmptyState.astro';
+
+type Entry = CollectionEntry<'projects'> | CollectionEntry<'lab'>;
+
+interface Props {
+  items: Entry[];
+  basePath: '/projects' | '/lab';
+  intro?: string;
+  emptyText?: string;
+}
+
+const { items, basePath, intro, emptyText = 'Здесь пока пусто.' } = Astro.props;
+const catOf = (e: Entry) => ('category' in e.data ? (e.data.category as CategoryKey) : undefined);
+const counts = items.reduce<Partial<Record<CategoryKey, number>>>((acc, e) => {
+  const c = catOf(e);
+  if (c) acc[c] = (acc[c] ?? 0) + 1;
+  return acc;
+}, {});
+const filters = (Object.keys(categories) as CategoryKey[]).filter((k) => counts[k]);
+---
+
+<div class="cat">
+  <aside class="cat__side">
+    <p class="cat__group">Избранное</p>
+    <a href={url('/projects')} class:list={{ 'is-active': basePath === '/projects' }}>projects</a>
+    <a href={url('/lab')} class:list={{ 'is-active': basePath === '/lab' }}>lab</a>
+    {
+      filters.length > 0 && (
+        <>
+          <p class="cat__group">Теги</p>
+          <div class="cat__filters" role="group" aria-label="Фильтр по направлению">
+            <button type="button" data-filter="all" aria-pressed="true">
+              все <span>{items.length}</span>
+            </button>
+            {filters.map((k) => (
+              <button type="button" data-filter={k} aria-pressed="false">
+                <i class:list={['dot', `dot--${categories[k].folder}`]} />
+                {categories[k].label} <span>{counts[k]}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )
+    }
+  </aside>
+
+  <div class="cat__main">
+    {intro && <p class="cat__intro">{intro}</p>}
+    {
+      items.length > 0 ? (
+        <div class="cat__grid reveal" data-grid>
+          {items.map((e) => {
+            const c = catOf(e);
+            const status = 'status' in e.data ? e.data.status : undefined;
+            return (
+              <article class="card" data-category={c} data-vt-origin>
+                <div class="card__preview">
+                  {e.data.cover ? (
+                    <Image src={e.data.cover} alt="" widths={[480, 800]} sizes="(max-width: 720px) 100vw, 360px" />
+                  ) : (
+                    <FolderIcon color={c ? categories[c].folder : 'red'} size={72} />
+                  )}
+                </div>
+                <div class="card__body">
+                  <p class="card__meta mono">
+                    <span>{e.id}/</span>
+                    <span>{formatYear(e.data.date)}</span>
+                    {status && status !== 'done' && <span class="warn">{statuses[status]}</span>}
+                    {e.data.draft && <span class="warn">черновик</span>}
+                  </p>
+                  <h2 class="card__title">
+                    <a href={url(`${basePath}/${e.id}`)}>{e.data.title}</a>
+                  </h2>
+                  <p class="card__summary">{e.data.summary}</p>
+                  {e.data.stack.length > 0 && (
+                    <ul class="card__stack" aria-label="Стек">
+                      {e.data.stack.slice(0, 4).map((s) => (
+                        <li>
+                          <Tag>{s}</Tag>
+                        </li>
+                      ))}
+                      {e.data.stack.length > 4 && (
+                        <li>
+                          <Tag>+{e.data.stack.length - 4}</Tag>
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState title="папка пуста" text={emptyText} />
+      )
+    }
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.cat').forEach((root) => {
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const cards = root.querySelectorAll<HTMLElement>('[data-grid] [data-category]');
+    if (!buttons.length) return;
+    const update = (f: string) => {
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === f)));
+      cards.forEach((c) => (c.hidden = f !== 'all' && c.dataset.category !== f));
+    };
+    // Карточки плавно перестраиваются при смене фильтра
+    const apply = (f: string, animate = true) => {
+      const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+      if (!animate || !doc.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        update(f);
+      } else {
+        cards.forEach((c, i) => (c.style.viewTransitionName = `card-${i}`));
+        doc.startViewTransition(() => update(f)).finished.finally(() => cards.forEach((c) => (c.style.viewTransitionName = '')));
+      }
+      const u = new URL(location.href);
+      f === 'all' ? u.searchParams.delete('cat') : u.searchParams.set('cat', f);
+      history.replaceState(null, '', u);
+    };
+    buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.filter ?? 'all')));
+    const initial = new URLSearchParams(location.search).get('cat');
+    if (initial && [...buttons].some((b) => b.dataset.filter === initial)) apply(initial, false);
+  });
+</script>
+
+<style>
+  .cat {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    min-height: 520px;
+  }
+
+  .cat__side {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 10px;
+    border-right: 1px solid var(--color-line);
+    background: var(--color-inset);
+    font-size: 13px;
+  }
+
+  .cat__group {
+    padding: 10px 8px 4px;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .cat__side a,
+  .cat__filters button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    color: #c6c8ce;
+    text-align: left;
+  }
+
+  .cat__filters button span {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-subtle);
+  }
+
+  .cat__side a:hover,
+  .cat__filters button:hover {
+    background: var(--color-hover);
+  }
+
+  .cat__side a.is-active,
+  .cat__filters button[aria-pressed='true'] {
+    background: rgb(255 255 255 / 0.1);
+    color: var(--color-text);
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .dot--light {
+    background: var(--folder-light);
+  }
+
+  .dot--red {
+    background: var(--folder-red);
+  }
+
+  .dot--gray {
+    background: var(--folder-gray);
+  }
+
+  .cat__main {
+    padding: var(--space-5);
+  }
+
+  .cat__intro {
+    max-width: 44rem;
+    margin-bottom: var(--space-5);
+    color: var(--color-text-muted);
+  }
+
+  .cat__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: var(--space-4);
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+    background: rgb(255 255 255 / 0.02);
+    overflow: hidden;
+    transition:
+      border-color var(--duration-fast),
+      background var(--duration-fast);
+  }
+
+  .card:hover {
+    border-color: var(--color-line-2);
+    background: rgb(255 255 255 / 0.04);
+  }
+
+  .card:focus-within {
+    border-color: var(--color-accent);
+  }
+
+  .card[hidden] {
+    display: none;
+  }
+
+  .card__preview {
+    aspect-ratio: 16 / 9;
+    display: grid;
+    place-items: center;
+    background: var(--color-inset);
+    border-bottom: 1px solid var(--color-line);
+    overflow: hidden;
+  }
+
+  .card__preview :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    flex: 1;
+  }
+
+  .card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: 11.5px;
+    color: var(--color-text-subtle);
+  }
+
+  .warn {
+    color: var(--color-yellow);
+  }
+
+  .card__title {
+    font-size: var(--text-xl);
+  }
+
+  .card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .card__title a:focus-visible {
+    outline: none;
+  }
+
+  .card__summary {
+    font-size: 14.5px;
+    color: var(--color-text-muted);
+  }
+
+  .card__stack {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: var(--space-2);
+  }
+
+  @media (max-width: 720px) {
+    .cat {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .cat__side {
+      flex-direction: row;
+      flex-wrap: wrap;
+      border-right: 0;
+      border-bottom: 1px solid var(--color-line);
+    }
+
+    .cat__side > a,
+    .cat__group {
+      display: none;
+    }
+
+    .cat__filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .cat__filters button {
+      width: auto;
+      border: 1px solid var(--color-line);
+    }
+
+    .cat__main {
+      padding: var(--space-4);
+    }
+  }
+</style>

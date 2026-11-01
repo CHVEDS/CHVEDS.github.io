@@ -1,0 +1,62 @@
+---
+interface Props { x?: number; y?: number }
+const { x = 36, y = 68 } = Astro.props;
+const pos = `left:${x}%;top:${y}%`;
+import { desktop } from '@/config/site';
+---
+
+<aside class="note" style={pos} aria-label="Сейчас в работе" data-window>
+  <p class="note__title">TODO</p>
+  <ul>
+    {
+      desktop.todo.map((t) => (
+        <li class:list={{ done: t.done }}>
+          <span aria-hidden="true">{t.done ? '☑' : '☐'}</span> {t.text}
+        </li>
+      ))
+    }
+  </ul>
+</aside>
+
+<style>
+  .note {
+    position: absolute;
+    width: 250px;
+    padding: 16px 18px;
+    background: var(--color-note);
+    color: var(--color-note-ink);
+    border-radius: 4px;
+    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.7);
+    transform: rotate(-2deg);
+    font-size: 14px;
+    line-height: 1.6;
+    z-index: 2;
+    cursor: grab;
+  }
+
+  .note__title {
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .done {
+    opacity: 0.55;
+    text-decoration: line-through;
+  }
+
+  @media (max-width: 1100px) {
+    .note {
+      position: relative;
+      left: auto !important;
+      top: auto !important;
+      width: auto;
+      transform: none;
+      cursor: default;
+    }
+  }
+</style>

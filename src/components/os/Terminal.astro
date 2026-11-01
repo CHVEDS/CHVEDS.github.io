@@ -1,0 +1,106 @@
+---
+import { desktop } from '@/config/site';
+/** cmd — команда (печатается), out — строка вывода со стрелкой, log — строка лога со временем */
+type TerminalLine = { type: 'cmd' | 'out'; text: string } | { type: 'log'; who: string; text: string };
+const lines = desktop.terminal.lines as readonly TerminalLine[];
+---
+
+<div class="term mono" data-terminal>
+  {
+    lines.map((l, i) => (
+      <div class="term__line" data-line style={`--i:${i}`}>
+        {l.type === 'cmd' ? (
+          <>
+            <span class="term__prompt">❯</span> <span data-type>{l.text}</span>
+          </>
+        ) : l.type === 'out' ? (
+          <>
+            <span class="term__who">→</span> <span>{l.text}</span>
+          </>
+        ) : (
+          <>
+            <span class="term__time">{`14:22:0${i}`}</span> <span class="term__who">{'who' in l ? l.who : ''}</span>{' '}
+            <span>{l.text}</span>
+          </>
+        )}
+      </div>
+    ))
+  }
+  <div class="term__line" data-line>
+    <span class="term__prompt">❯</span> <span class="term__cursor" aria-hidden="true"></span>
+  </div>
+</div>
+
+<script>
+  // Строки появляются по очереди, команда «печатается». Уважаем prefers-reduced-motion.
+  document.querySelectorAll<HTMLElement>('[data-terminal]').forEach((term) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const lines = [...term.querySelectorAll<HTMLElement>('[data-line]')];
+    const now = new Date();
+    term.querySelectorAll<HTMLElement>('.term__time').forEach((t, i) => {
+      const d = new Date(now.getTime() + i * 1100);
+      t.textContent = d.toLocaleTimeString('ru-RU');
+    });
+    lines.forEach((l) => (l.style.visibility = 'hidden'));
+    const step = lines.length > 8 ? 260 : 380;
+    let i = 0;
+    const next = () => {
+      const line = lines[i++];
+      if (!line) return;
+      line.style.visibility = 'visible';
+      const typed = line.querySelector<HTMLElement>('[data-type]');
+      if (typed) {
+        const full = typed.textContent ?? '';
+        typed.textContent = '';
+        let c = 0;
+        const t = setInterval(() => {
+          typed.textContent = full.slice(0, ++c);
+          if (c >= full.length) {
+            clearInterval(t);
+            setTimeout(next, 350);
+          }
+        }, 28);
+      } else setTimeout(next, step);
+    };
+    setTimeout(next, 500);
+  });
+</script>
+
+<style>
+  .term {
+    padding: 14px 16px;
+    font-size: 12.5px;
+    line-height: 1.85;
+    white-space: pre-wrap;
+    min-height: 220px;
+  }
+
+  .term__line {
+    padding-left: 2ch;
+    text-indent: -2ch;
+  }
+
+  .term__prompt,
+  .term__who {
+    color: var(--color-red);
+  }
+
+  .term__time {
+    color: var(--color-text-subtle);
+  }
+
+  .term__cursor {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    background: var(--color-red);
+    vertical-align: -3px;
+    animation: blink 1.1s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>

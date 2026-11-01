@@ -1,0 +1,351 @@
+---
+/** Страница проекта / мини-проекта: окно README.md со свойствами справа */
+import { Image } from 'astro:assets';
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import Window from '@/components/os/Window.astro';
+import Icon from '@/components/Icon.astro';
+import Tag from '@/components/Tag.astro';
+import { categories, statuses } from '@/config/site';
+import { formatMonth, url } from '@/lib/utils';
+
+type Entry = CollectionEntry<'projects'> | CollectionEntry<'lab'>;
+
+interface Props {
+  entry: Entry;
+  basePath: '/projects' | '/lab';
+  prev?: Entry;
+  next?: Entry;
+}
+
+const { entry, basePath, prev, next } = Astro.props;
+const { data } = entry;
+const { Content } = await render(entry);
+const p = entry.collection === 'projects' ? (entry as CollectionEntry<'projects'>).data : undefined;
+const folder = basePath.slice(1);
+
+const facts = [
+  p && { label: 'Направление', value: categories[p.category].label },
+  p?.role && { label: 'Роль', value: p.role },
+  p?.team && { label: 'Команда', value: p.team },
+  { label: 'Дата', value: formatMonth(data.date) },
+  p && { label: 'Статус', value: statuses[p.status] },
+].filter(Boolean) as { label: string; value: string }[];
+
+const linkDefs = [
+  { key: 'demo', label: 'Открыть демо', icon: 'external' },
+  { key: 'repo', label: 'Исходный код', icon: 'github' },
+  { key: 'video', label: 'Видео', icon: 'play' },
+  { key: 'docs', label: 'Документация', icon: 'doc' },
+] as const;
+const links = linkDefs.filter((l) => data.links[l.key]);
+---
+
+<BaseLayout title={data.title} description={data.summary} image={data.cover?.src} type="article" noindex={data.draft}>
+  <Window
+    variant="page"
+    title={`~/${folder}/${entry.id}/README.md`}
+    tabs={[
+      { label: `← ${folder}/`, href: url(basePath) },
+      { label: 'README.md', active: true },
+    ]}
+  >
+    <article class="entry">
+      <div class="entry__main reveal">
+        <p class="entry__path mono">
+          {folder}/<b>{entry.id}</b>
+          {data.draft && <span class="warn"> · черновик</span>}
+        </p>
+        <h1 class="entry__title">{data.title}</h1>
+        <p class="entry__summary">{data.summary}</p>
+
+        {
+          data.cover && (
+            <Image
+              class="entry__cover"
+              src={data.cover}
+              alt={data.coverAlt ?? data.title}
+              widths={[800, 1200, 1600]}
+              sizes="(max-width: 1100px) 100vw, 760px"
+              loading="eager"
+            />
+          )
+        }
+
+        {
+          p && p.metrics.length > 0 && (
+            <ul class="entry__metrics">
+              {p.metrics.map((m) => (
+                <li>
+                  <b>{m.value}</b>
+                  <span>{m.label}</span>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+
+        <div class="prose entry__content">
+          <Content />
+        </div>
+      </div>
+
+      <aside class="entry__info" aria-label="Свойства">
+        <p class="entry__info-title mono">Свойства</p>
+        <dl>
+          {
+            facts.map((f) => (
+              <div>
+                <dt>{f.label}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {
+          data.stack.length > 0 && (
+            <>
+              <p class="entry__info-title mono">Стек</p>
+              <ul class="entry__stack">
+                {data.stack.map((s) => (
+                  <li>
+                    <Tag>{s}</Tag>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )
+        }
+
+        {
+          links.length > 0 && (
+            <div class="entry__links">
+              {links.map((l, i) => (
+                <a href={data.links[l.key]} target="_blank" rel="noopener" class:list={['lnk', { 'lnk--primary': i === 0 }]}>
+                  <Icon name={l.icon} size={16} /> {l.label}
+                </a>
+              ))}
+            </div>
+          )
+        }
+      </aside>
+    </article>
+
+    {
+      (prev || next) && (
+        <nav class="pager" aria-label="Другие работы">
+          {prev ? (
+            <a href={url(`${basePath}/${prev.id}`)}>
+              <span class="mono">← новее</span>
+              {prev.data.title}
+            </a>
+          ) : (
+            <span />
+          )}
+          {next && (
+            <a href={url(`${basePath}/${next.id}`)} class="pager__next">
+              <span class="mono">раньше →</span>
+              {next.data.title}
+            </a>
+          )}
+        </nav>
+      )
+    }
+  </Window>
+</BaseLayout>
+
+<style>
+  .entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .entry__main {
+    padding: var(--space-6) var(--space-7) var(--space-7);
+    min-width: 0;
+  }
+
+  .entry__path {
+    font-size: 12.5px;
+    color: var(--color-text-subtle);
+  }
+
+  .entry__path b {
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  .warn {
+    color: var(--color-yellow);
+  }
+
+  .entry__title {
+    margin-top: var(--space-3);
+    font-size: var(--text-display);
+    letter-spacing: -0.035em;
+  }
+
+  .entry__summary {
+    margin-top: var(--space-4);
+    font-size: var(--text-xl);
+    line-height: 1.4;
+    color: var(--color-text-muted);
+  }
+
+  .entry__main :global(.entry__cover) {
+    width: 100%;
+    margin-top: var(--space-6);
+    border-radius: 10px;
+    border: 1px solid var(--color-line);
+  }
+
+  .entry__metrics {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .entry__metrics li {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+    background: rgb(255 255 255 / 0.02);
+  }
+
+  .entry__metrics b {
+    font-size: var(--text-2xl);
+    letter-spacing: -0.02em;
+  }
+
+  .entry__metrics span {
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+
+  .entry__content {
+    margin-top: var(--space-6);
+  }
+
+  .entry__info {
+    padding: var(--space-6) var(--space-5);
+    border-left: 1px solid var(--color-line);
+    background: var(--color-inset);
+  }
+
+  .entry__info-title {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
+    margin-bottom: var(--space-3);
+  }
+
+  .entry__info dl {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .entry__info dt {
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+
+  .entry__info dd {
+    font-weight: 500;
+  }
+
+  .entry__stack {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: var(--space-6);
+  }
+
+  .entry__links {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .lnk {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 9px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-line-2);
+    font-size: 14px;
+    transition: background var(--duration-fast);
+  }
+
+  .lnk:hover {
+    background: var(--color-hover);
+  }
+
+  .lnk--primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    border-color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .lnk--primary:hover {
+    background: #fff;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .pager a {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-4) var(--space-5);
+    font-weight: 600;
+  }
+
+  .pager a:hover {
+    background: var(--color-hover);
+  }
+
+  .pager span {
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--color-text-subtle);
+  }
+
+  .pager__next {
+    text-align: right;
+    border-left: 1px solid var(--color-line);
+  }
+
+  @media (max-width: 900px) {
+    .entry {
+      grid-template-columns: 1fr;
+    }
+
+    .entry__main {
+      padding: var(--space-5) var(--space-4) var(--space-6);
+    }
+
+    .entry__info {
+      border-left: 0;
+      border-top: 1px solid var(--color-line);
+      padding: var(--space-4);
+    }
+
+    .entry__info dl {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

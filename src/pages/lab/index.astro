@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Window from '@/components/os/Window.astro';
+import Catalog from '@/components/os/Catalog.astro';
+import { getLabItems } from '@/lib/content';
+
+const items = await getLabItems();
+---
+
+<BaseLayout title="Лаборатория" description="Небольшие приложения и эксперименты, написанные специально для портфолио.">
+  <Window variant="page" title="~/lab" meta={`${items.length} эл.`}>
+    <h1 class="sr-only">Лаборатория</h1>
+    <Catalog
+      items={items}
+      basePath="/lab"
+      intro="Небольшие приложения, которые я пишу, чтобы попробовать идею или технологию. Многие можно запустить прямо здесь."
+      emptyText="Первые эксперименты уже в работе."
+    />
+  </Window>
+</BaseLayout>

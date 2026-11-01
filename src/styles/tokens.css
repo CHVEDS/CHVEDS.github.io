@@ -1,0 +1,76 @@
+/*
+ * ДИЗАЙН-ТОКЕНЫ. Весь визуал сайта держится на этих переменных.
+ * Стиль: «рабочий стол разработчика», монохром + красный акцент.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Фон и поверхности */
+  --color-bg: #111215;
+  --color-panel: rgb(24 25 29 / 0.86);
+  --color-panel-solid: #18191d;
+  --color-panel-2: rgb(36 38 43 / 0.95);
+  --color-inset: rgb(0 0 0 / 0.16);
+  --color-hover: rgb(255 255 255 / 0.06);
+  --color-line: #2a2c32;
+  --color-line-2: #41444c;
+
+  /* Текст */
+  --color-text: #e8e9ec;
+  --color-text-muted: #8d9099;
+  --color-text-subtle: #5c5f68;
+
+  /* Акценты: белый — главный, красный — точечный */
+  --color-accent: #f2f2f0;
+  --color-on-accent: #111214;
+  --color-red: #ff5f57;
+  --color-yellow: #febc2e;
+  --color-green: #28c840;
+  --color-note: #f3e9a6;
+  --color-note-ink: #2a2615;
+
+  /* Цвета папок */
+  --folder-light: #f2f2f0;
+  --folder-red: #ff5f57;
+  --folder-gray: #8b8f99;
+
+  /* Шрифты */
+  --font-sans: 'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* Типографика */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 1rem;
+  --text-lg: 1.0625rem;
+  --text-xl: clamp(1.2rem, 1.1rem + 0.4vw, 1.4rem);
+  --text-2xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --text-3xl: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+  --text-display: clamp(2.4rem, 1.4rem + 3vw, 3.6rem);
+
+  /* Отступы */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --gutter: clamp(1rem, 0.5rem + 2vw, 2rem);
+
+  /* Окна */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-win: 12px;
+  --radius-lg: 16px;
+  --shadow-win: 0 30px 70px -20px rgb(0 0 0 / 0.75), 0 0 0 0.5px rgb(255 255 255 / 0.06) inset;
+  --blur: blur(18px);
+
+  --menubar-h: 30px;
+  --dock-space: 104px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration: 250ms;
+}
